@@ -3,6 +3,7 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import yfinance as yf
+import time
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -41,14 +42,14 @@ def query_stock():
         stock = yf.Ticker(ticker)
         info = stock.info
 
-        # Check if we got valid data
-        if not info or 'symbol' not in info:
-            return jsonify({"error": f"No data found for ticker: {ticker}"}), 404
+        # Check if we got valid data and all required fields are present
+        if not info or not all(key in info and info[key] is not None for key in ['symbol', 'longName', 'currentPrice']):
+            return jsonify({"error": f"Incomplete or no data found for ticker: {ticker}"}), 404
 
         return jsonify({
-            "symbol": info.get('symbol'),
-            "name": info.get('longName'),
-            "price": info.get('currentPrice'),
+            "symbol": info['symbol'],
+            "name": info['longName'],
+            "price": info['currentPrice'],
         })
     except Exception as e:
         print(f"Error in query_stock: {str(e)}")  # Log the error
@@ -76,6 +77,7 @@ def trade_stock():
 
     data = request.json
     ticker = data.get('ticker')
+    ticker = ticker.upper()
     quantity = data.get('quantity')
     action = data.get('action')  # 'buy' or 'sell'
 
@@ -92,7 +94,6 @@ def trade_stock():
         if not info or 'currentPrice' not in info:
             print(f"No data found for ticker: {ticker}")
             return jsonify({"error": f"No data found for ticker: {ticker}"}), 404
-        
         current_price = info['currentPrice']
         print(f"Current price for {ticker}: ${current_price}")
 
@@ -133,6 +134,20 @@ def trade_stock():
 
         action_past = "bought" if action == "buy" else "sold"
         print(f"Trade successful: {action_past} {quantity} shares of {ticker} at ${current_price}")
+
+        # Store the transaction
+        transaction = {
+            "ticker": ticker,
+            "quantity": quantity,
+            "action": action,
+            "price": current_price,
+            "timestamp": int(time.time())
+        }
+        transactions_ref = db.collection('transactions').document(uid)
+        transactions_ref.set({
+            "history": firestore.ArrayUnion([transaction])
+        }, merge=True)
+
         return jsonify({"message": f"Successfully {action_past} {quantity} shares of {ticker} at ${current_price:.2f} per share"})
     except Exception as e:
         print(f"Error in trade_stock: {str(e)}")
@@ -175,6 +190,32 @@ def get_portfolio():
         return jsonify(result)
     except Exception as e:
         print(f"Error in get_portfolio: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/transactions', methods=['GET'])
+def get_transactions():
+    """
+    Endpoint to retrieve the user's transaction history.
+    """
+    id_token = request.headers.get('Authorization')
+    if not id_token:
+        return jsonify({"error": "No token provided"}), 401
+
+    uid = verify_token(id_token)
+    if not uid:
+        return jsonify({"error": "Invalid token"}), 401
+
+    try:
+        transactions_ref = db.collection('transactions').document(uid)
+        transactions = transactions_ref.get()
+        
+        if not transactions.exists:
+            return jsonify([])
+
+        transactions_data = transactions.to_dict()
+        return jsonify(transactions_data.get('history', []))
+    except Exception as e:
+        print(f"Error in get_transactions: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':

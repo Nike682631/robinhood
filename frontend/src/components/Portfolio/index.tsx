@@ -1,36 +1,47 @@
 import React from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { FaChartLine, FaSpinner } from 'react-icons/fa';
 
 const Portfolio: React.FC = () => {
   const { portfolio, error } = usePortfolio();
 
   return (
-    <div>
-      <h2 className="mb-4 text-2xl font-bold">Your Portfolio</h2>
-      {error && <p className="text-red-500">{error}</p>}
+    <div className="rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 flex items-center text-2xl font-bold text-gray-800">
+        <FaChartLine className="mr-2 text-green-500" />
+        Your Portfolio
+      </h2>
+      {error && (
+        <p className="mb-4 rounded-md bg-red-100 p-2 text-red-700">{error}</p>
+      )}
       {portfolio.length > 0 ? (
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th className="text-left">Ticker</th>
-              <th className="text-left">Quantity</th>
-              <th className="text-left">Current Price</th>
-              <th className="text-left">Total Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {portfolio.map((item) => (
-              <tr key={item.ticker}>
-                <td>{item.ticker}</td>
-                <td>{item.quantity}</td>
-                <td>${item.current_price.toFixed(2)}</td>
-                <td>${item.total_value.toFixed(2)}</td>
+        <div className="max-h-96 overflow-y-auto pr-2">
+          <table className="w-full">
+            <thead className="sticky top-0 bg-gray-100">
+              <tr>
+                <th className="p-2 text-left">Ticker</th>
+                <th className="p-2 text-left">Quantity</th>
+                <th className="p-2 text-left">Current Price</th>
+                <th className="p-2 text-left">Total Value</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {portfolio.map((item) => (
+                <tr key={item.ticker} className="border-b">
+                  <td className="p-2 font-semibold">{item.ticker}</td>
+                  <td className="p-2">{item.quantity}</td>
+                  <td className="p-2">${item.current_price.toFixed(2)}</td>
+                  <td className="p-2">${item.total_value.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <p>No stocks in your portfolio.</p>
+        <div className="flex items-center justify-center p-4 text-gray-500">
+          <FaSpinner className="mr-2 animate-spin" />
+          Loading portfolio...
+        </div>
       )}
     </div>
   );
