@@ -21,7 +21,7 @@ This project is a stock trading simulator based on Robinhood that allows users q
 2. Create a virtual environment:
 
    ```
-   python -m venv env
+   python3 -m venv env
    ```
 
 3. Activate the virtual environment:
@@ -44,14 +44,11 @@ This project is a stock trading simulator based on Robinhood that allows users q
 5. Set up Firebase:
 
    - Create a Firebase project at https://console.firebase.google.com/
+   - Enable Firestore and Authentication
+   - Enable Google in sign up methods in authentication.
+   - In firestore mention whichever timezone and start it in production mode.
    - Generate a new private key for your service account
    - Save the private key as `serviceAccountKey.json` in the `backend` directory
-
-6. Create a `.env` file in the `backend` directory with the following content:
-   ```
-   FLASK_APP=main.py
-   FLASK_ENV=development
-   ```
 
 ### Frontend Setup
 
@@ -77,9 +74,38 @@ This project is a stock trading simulator based on Robinhood that allows users q
    - Use the `.env.demo` file as a template and replace the values with your own in .env file.
 
 4. Set up Firebase:
+
    - Add a web app to your Firebase project
+   - Register the app in the project settings -> general -> your apps -> register a web app (</> icon)
    - Copy the Firebase configuration
-   - Use the firebase configuration to fill the .env file
+   - Use the Firebase configuration to fill the .env file
+   - The Firebase config in the console will be in this format:
+
+     ```javascript
+     const firebaseConfig = {
+       apiKey: "xxxxxxxxx",
+       authDomain: "xxxxxxxx",
+       projectId: "xxxxxxxx",
+       storageBucket: "xxxxxxxx",
+       messagingSenderId: "xxxxxxxx",
+       appId: "xxxxxxxx",
+       measurementId: "xxxxxxxx",
+     };
+     ```
+
+   - Use this to fill the .env file variables as follows:
+     ```
+     VITE_firebaseApiKey=xxxxxxxxx
+     VITE_firebaseAuthDomain=xxxxxxxx
+     VITE_firebaseProjectId=xxxxxxxx
+     VITE_firebaseStorageBucket=xxxxxxxx
+     VITE_firebaseMessagingSenderId=xxxxxxxx
+     VITE_firebaseAppId=xxxxxxxx
+     VITE_firebaseMeasurementId=xxxxxxxx
+     ```
+   - Note: The variable names have a `VITE_firebase` prefix, and the rest of the name matches the Firebase config variables.
+
+5. Once you start the backend server, copy the backend url and paste it in the .env file. It should be something like - http://127.0.0.1:5000
 
 ## Running the Project
 
@@ -87,7 +113,7 @@ This project is a stock trading simulator based on Robinhood that allows users q
 
    ```
    cd backend
-   flask run or flask --app main run
+   flask --app main run
    ```
 
 2. In a new terminal, start the frontend development server:
