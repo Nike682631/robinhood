@@ -47,7 +47,7 @@ This project is a stock trading simulator based on Robinhood that allows users q
    - Enable Firestore and Authentication
    - Enable Google in sign up methods in authentication.
    - In firestore mention whichever timezone and start it in production mode.
-   - Generate a new private key for your service account
+   - Generate a new private key for your service account(Project settings -> service accounts)
    - Save the private key as `serviceAccountKey.json` in the `backend` directory
 
 ### Frontend Setup
