@@ -88,6 +88,14 @@ def trade_stock():
         return jsonify({"error": "Invalid request data"}), 400
 
     try:
+        quantity = int(quantity)
+        if quantity <= 0:
+            raise ValueError("Quantity must be a positive integer")
+    except ValueError:
+        print("Invalid quantity")
+        return jsonify({"error": "Quantity must be a positive integer"}), 400
+
+    try:
         # Check if the stock exists and get its current price
         stock = yf.Ticker(ticker)
         info = stock.info
