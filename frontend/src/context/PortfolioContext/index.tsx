@@ -17,8 +17,8 @@ interface Transaction {
 }
 
 interface PortfolioContextType {
-  portfolio: PortfolioItem[];
-  transactions: Transaction[];
+  portfolio: PortfolioItem[] | null;
+  transactions: Transaction[] | null;
   error: string | null;
   fetchPortfolio: () => Promise<void>;
   fetchTransactions: () => Promise<void>;
@@ -39,8 +39,8 @@ export const usePortfolio = () => {
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[] | null>(null);
+  const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchPortfolio = async () => {

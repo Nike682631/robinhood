@@ -103,8 +103,7 @@ def trade_stock():
         # Get the current portfolio or create a new one
         portfolio = portfolio_ref.get()
         if not portfolio.exists:
-            print("Creating new portfolio")
-            portfolio_ref.set({})
+            return jsonify([])  # Return an empty list instead of creating a new portfolio
         else:
             portfolio = portfolio.to_dict()
 

@@ -12,11 +12,13 @@ const Transactions: React.FC = () => {
         Transaction History
       </h2>
       {error && <p className="mb-4 text-red-500">{error}</p>}
-      {transactions.length === 0 ? (
+      {transactions === null ? (
         <div className="flex items-center justify-center p-4 text-gray-500">
           <FaSpinner className="mr-2 animate-spin" />
           Loading transactions...
         </div>
+      ) : transactions.length === 0 ? (
+        <p className="text-center text-gray-500">No transactions found.</p>
       ) : (
         <div className="max-h-96 overflow-y-auto pr-2">
           <ul className="divide-y divide-gray-200">

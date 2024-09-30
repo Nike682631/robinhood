@@ -14,7 +14,14 @@ const Portfolio: React.FC = () => {
       {error && (
         <p className="mb-4 rounded-md bg-red-100 p-2 text-red-700">{error}</p>
       )}
-      {portfolio.length > 0 ? (
+      {portfolio === null ? (
+        <div className="flex items-center justify-center p-4 text-gray-500">
+          <FaSpinner className="mr-2 animate-spin" />
+          Loading portfolio...
+        </div>
+      ) : portfolio.length === 0 ? (
+        <p className="text-center text-gray-500">No stocks in portfolio.</p>
+      ) : (
         <div className="max-h-96 overflow-y-auto pr-2">
           <table className="w-full">
             <thead className="sticky top-0 bg-gray-100">
@@ -36,11 +43,6 @@ const Portfolio: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center p-4 text-gray-500">
-          <FaSpinner className="mr-2 animate-spin" />
-          Loading portfolio...
         </div>
       )}
     </div>
