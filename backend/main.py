@@ -99,11 +99,12 @@ def trade_stock():
 
         # Reference to the user's portfolio in Firestore
         portfolio_ref = db.collection('portfolios').document(uid)
-        
+
         # Get the current portfolio or create a new one
         portfolio = portfolio_ref.get()
         if not portfolio.exists:
-            return jsonify([])  # Return an empty list instead of creating a new portfolio
+            portfolio_ref.set({})
+            portfolio = {}
         else:
             portfolio = portfolio.to_dict()
 
