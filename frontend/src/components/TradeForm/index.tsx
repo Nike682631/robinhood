@@ -115,15 +115,34 @@ const TradeForm: React.FC = () => {
             aria-label="Trade quantity"
           />
         </div>
-        <select
-          value={action}
-          onChange={(e) => setAction(e.target.value as 'buy' | 'sell')}
-          className="rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
-          aria-label="Trade action"
-        >
-          <option value="buy">Buy</option>
-          <option value="sell">Sell</option>
-        </select>
+
+        <div className="relative w-full">
+          <select
+            value={action}
+            onChange={(e) => setAction(e.target.value as 'buy' | 'sell')}
+            className="relative w-full appearance-none rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
+            aria-label="Trade action"
+          >
+            <option value="buy">Buy</option>
+            <option value="sell">Sell</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </div>
+        </div>
         <button
           onClick={handleTrade}
           disabled={isLoading || !ticker.trim() || !validateQuantity(quantity)}
