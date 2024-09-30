@@ -28,13 +28,17 @@ const Transactions: React.FC = () => {
                   <div>
                     <p className="font-semibold">{transaction.ticker}</p>
                     <p className="text-sm text-gray-500">
-                      {new Intl.DateTimeFormat('default', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }).format(new Date(transaction.timestamp))}
+                      {new Date(transaction.timestamp).toLocaleString(
+                        undefined,
+                        {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: true,
+                        },
+                      )}
                     </p>
                   </div>
                   <div className="text-right">

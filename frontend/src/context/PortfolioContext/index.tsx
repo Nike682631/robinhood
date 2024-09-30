@@ -14,7 +14,7 @@ interface Transaction {
   quantity: number;
   action: 'buy' | 'sell';
   price: number;
-  timestamp: number;
+  timestamp: string;
 }
 
 interface PortfolioContextType {
