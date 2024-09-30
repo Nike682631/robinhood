@@ -3,7 +3,7 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import yfinance as yf
-import time
+from datetime import datetime, timezone
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -149,7 +149,7 @@ def trade_stock():
             "quantity": quantity,
             "action": action,
             "price": current_price,
-            "timestamp": int(time.time())
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         transactions_ref = db.collection('transactions').document(uid)
         transactions_ref.set({

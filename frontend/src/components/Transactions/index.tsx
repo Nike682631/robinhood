@@ -34,7 +34,7 @@ const Transactions: React.FC = () => {
                         day: 'numeric',
                         hour: '2-digit',
                         minute: '2-digit',
-                      }).format(new Date(transaction.timestamp * 1000))}
+                      }).format(new Date(transaction.timestamp))}
                     </p>
                   </div>
                   <div className="text-right">
