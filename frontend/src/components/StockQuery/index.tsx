@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { FaSearch, FaSpinner } from 'react-icons/fa';
+import { usePortfolio } from '../../context/PortfolioContext';
 
 const StockQuery: React.FC = () => {
   const [ticker, setTicker] = useState('');
   const [stockInfo, setStockInfo] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const { showToast } = usePortfolio();
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleQuery();
+    }
+  };
+
   const handleQuery = async () => {
-    setError(null);
     setStockInfo(null);
     setIsLoading(true);
     try {
@@ -23,10 +30,14 @@ const StockQuery: React.FC = () => {
       }
       const data = await response.json();
       setStockInfo(data);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unexpected error occurred',
+      showToast(
+        `Successfully fetched information for ${data.symbol}`,
+        'success',
       );
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unexpected error occurred';
+      showToast(errorMessage, 'error');
     } finally {
       setIsLoading(false);
     }
@@ -40,6 +51,7 @@ const StockQuery: React.FC = () => {
           type="text"
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Enter stock ticker"
           aria-label="Stock ticker symbol"
           className="mr-2 w-full rounded-l-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
@@ -57,7 +69,6 @@ const StockQuery: React.FC = () => {
           {isLoading ? 'Loading...' : 'Query'}
         </button>
       </div>
-      {error && <p className="text-red-500">{error}</p>}
       {stockInfo && (
         <div className="rounded-md bg-gray-100 p-4">
           <h3 className="mb-2 text-xl font-semibold text-gray-800">

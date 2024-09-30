@@ -12,17 +12,16 @@ const TradeForm: React.FC = () => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [action, setAction] = useState<'buy' | 'sell'>('buy');
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { fetchPortfolio, fetchTransactions, showToast } = usePortfolio();
 
   const validateForm = (): boolean => {
     if (!ticker.trim()) {
-      setError('Please enter a ticker symbol');
+      showToast('Please enter a ticker symbol', 'error');
       return false;
     }
     if (!validateQuantity(quantity)) {
-      setError('Please enter a valid quantity (positive integer)');
+      showToast('Please enter a valid quantity (positive integer)', 'error');
       return false;
     }
     return true;
@@ -31,7 +30,6 @@ const TradeForm: React.FC = () => {
   const handleTrade = async () => {
     if (!validateForm()) return;
 
-    setError(null);
     setIsLoading(true);
 
     try {
@@ -80,9 +78,14 @@ const TradeForm: React.FC = () => {
       const errorMessage =
         err instanceof Error ? err.message : 'An unexpected error occurred';
       showToast(errorMessage, 'error');
-      setError(errorMessage);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      handleTrade();
     }
   };
 
@@ -94,6 +97,7 @@ const TradeForm: React.FC = () => {
           type="text"
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Enter stock ticker"
           className="rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
           aria-label="Stock ticker symbol"
@@ -103,6 +107,7 @@ const TradeForm: React.FC = () => {
             type="number"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
+            onKeyDown={handleKeyDown}
             min="1"
             step="1"
             placeholder="Enter quantity"
@@ -131,7 +136,6 @@ const TradeForm: React.FC = () => {
           )}
           {isLoading ? 'Processing...' : 'Execute Trade'}
         </button>
-        {error && <p className="text-red-500">{error}</p>}
       </div>
     </div>
   );
