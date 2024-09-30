@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { FaExchangeAlt } from 'react-icons/fa';
+import { FaExchangeAlt, FaSpinner } from 'react-icons/fa';
 
 const validateQuantity = (value: string): boolean => {
   const num = Number(value);
@@ -12,28 +12,38 @@ const TradeForm: React.FC = () => {
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('');
   const [action, setAction] = useState<'buy' | 'sell'>('buy');
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { fetchPortfolio, fetchTransactions, showToast } = usePortfolio();
 
-  const { fetchPortfolio, fetchTransactions } = usePortfolio();
+  const validateForm = (): boolean => {
+    if (!ticker.trim()) {
+      setError('Please enter a ticker symbol');
+      return false;
+    }
+    if (!validateQuantity(quantity)) {
+      setError('Please enter a valid quantity (positive integer)');
+      return false;
+    }
+    return true;
+  };
 
   const handleTrade = async () => {
-    setError(null);
-    setMessage(null);
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (!user) {
-      setError('User not authenticated');
-      return;
-    }
+    if (!validateForm()) return;
 
-    if (!validateQuantity(quantity)) {
-      setError('Quantity must be a positive integer');
-      return;
-    }
+    setError(null);
+    setIsLoading(true);
 
     try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const idToken = await user.getIdToken();
+
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/trade`,
         {
@@ -43,7 +53,7 @@ const TradeForm: React.FC = () => {
             Authorization: idToken,
           },
           body: JSON.stringify({
-            ticker,
+            ticker: ticker.toUpperCase(),
             quantity: parseInt(quantity),
             action,
           }),
@@ -51,17 +61,28 @@ const TradeForm: React.FC = () => {
       );
 
       if (!response.ok) {
-        throw new Error('Trade failed');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to execute trade');
       }
 
       const data = await response.json();
-      setMessage(data.message);
-      setError(null);
-      fetchPortfolio();
-      fetchTransactions();
+      showToast(data.message || 'Trade executed successfully', 'success');
+
+      // Reset form
+      setTicker('');
+      setQuantity('');
+      setAction('buy');
+
+      // Refresh portfolio and transactions
+      await fetchPortfolio();
+      await fetchTransactions();
     } catch (err) {
-      setError(`Error executing trade`);
-      setMessage(null);
+      const errorMessage =
+        err instanceof Error ? err.message : 'An unexpected error occurred';
+      showToast(errorMessage, 'error');
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,47 +96,43 @@ const TradeForm: React.FC = () => {
           onChange={(e) => setTicker(e.target.value)}
           placeholder="Enter stock ticker"
           className="rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
+          aria-label="Stock ticker symbol"
         />
         <div className="flex items-center">
           <input
             type="number"
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
-            onKeyPress={(e) => {
-              if (!/[0-9]/.test(e.key)) {
-                e.preventDefault();
-              }
-            }}
             min="1"
             step="1"
             placeholder="Enter quantity"
             className="w-full rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
+            aria-label="Trade quantity"
           />
         </div>
         <select
           value={action}
           onChange={(e) => setAction(e.target.value as 'buy' | 'sell')}
           className="rounded-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
+          aria-label="Trade action"
         >
           <option value="buy">Buy</option>
           <option value="sell">Sell</option>
         </select>
         <button
           onClick={handleTrade}
-          className="flex items-center justify-center rounded-md bg-green-500 px-4 py-2 text-white transition duration-300 hover:bg-green-600"
+          disabled={isLoading || !ticker.trim() || !validateQuantity(quantity)}
+          className="flex items-center justify-center rounded-md bg-green-500 px-4 py-2 text-white transition duration-300 hover:bg-green-600 disabled:bg-gray-400"
         >
-          <FaExchangeAlt className="mr-2" />
-          Execute Trade
+          {isLoading ? (
+            <FaSpinner className="mr-2 animate-spin" />
+          ) : (
+            <FaExchangeAlt className="mr-2" />
+          )}
+          {isLoading ? 'Processing...' : 'Execute Trade'}
         </button>
+        {error && <p className="text-red-500">{error}</p>}
       </div>
-      {message && (
-        <p className="mt-4 rounded-md bg-green-100 p-2 text-green-700">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p className="mt-4 rounded-md bg-red-100 p-2 text-red-700">{error}</p>
-      )}
     </div>
   );
 };

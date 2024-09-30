@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
+import Toast from '../../components/Toast';
 
 interface PortfolioItem {
   ticker: string;
@@ -22,6 +23,8 @@ interface PortfolioContextType {
   error: string | null;
   fetchPortfolio: () => Promise<void>;
   fetchTransactions: () => Promise<void>;
+  showToast: (message: string, type: 'success' | 'error') => void;
+  clearToast: () => void;
 }
 
 const PortfolioContext = createContext<PortfolioContextType | undefined>(
@@ -42,6 +45,18 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({
   const [portfolio, setPortfolio] = useState<PortfolioItem[] | null>(null);
   const [transactions, setTransactions] = useState<Transaction[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+  };
+
+  const clearToast = () => {
+    setToast(null);
+  };
 
   const fetchPortfolio = async () => {
     const auth = getAuth();
@@ -67,7 +82,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const data = await response.json();
-      setPortfolio(data);
+      setPortfolio(data.length === 0 ? [] : data);
       setError(null);
     } catch (err) {
       setError('Error fetching portfolio');
@@ -98,7 +113,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       const data = await response.json();
-      setTransactions(data);
+      setTransactions(data.length === 0 ? [] : data);
       setError(null);
     } catch (err) {
       setError('Error fetching transactions');
@@ -118,9 +133,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({
         error,
         fetchPortfolio,
         fetchTransactions,
+        showToast,
+        clearToast,
       }}
     >
       {children}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={clearToast} />
+      )}
     </PortfolioContext.Provider>
   );
 };

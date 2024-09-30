@@ -16,17 +16,17 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="fixed inset-0 overflow-hidden">
       <video
         autoPlay
         loop
         muted
-        className="absolute h-full w-full object-cover"
+        className="absolute min-h-full min-w-full object-cover"
       >
         <source src={backgroundVideo} type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-      <div className="relative z-10 flex h-full items-center justify-center">
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

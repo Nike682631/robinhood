@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaSpinner } from 'react-icons/fa';
 
 const StockQuery: React.FC = () => {
   const [ticker, setTicker] = useState('');
   const [stockInfo, setStockInfo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleQuery = async () => {
+    setError(null);
+    setStockInfo(null);
+    setIsLoading(true);
     try {
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/query?ticker=${ticker}`,
       );
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Stock not found. Please check the ticker symbol.');
+        }
         throw new Error('Failed to fetch stock information');
       }
       const data = await response.json();
-      console.log(data);
       setStockInfo(data);
-      setError(null);
     } catch (err) {
-      setError('Error fetching stock information, please recheck stock symbol');
-      setStockInfo(null);
+      setError(
+        err instanceof Error ? err.message : 'An unexpected error occurred',
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,14 +41,20 @@ const StockQuery: React.FC = () => {
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
           placeholder="Enter stock ticker"
+          aria-label="Stock ticker symbol"
           className="mr-2 w-full rounded-l-md border border-gray-300 p-2 focus:border-green-500 focus:outline-none"
         />
         <button
           onClick={handleQuery}
-          className="flex items-center rounded-r-md bg-green-500 px-4 py-2 text-white transition duration-300 hover:bg-green-600"
+          disabled={isLoading}
+          className="flex items-center rounded-r-md bg-green-500 px-4 py-2 text-white transition duration-300 hover:bg-green-600 disabled:bg-gray-400"
         >
-          <FaSearch className="mr-2" />
-          Query
+          {isLoading ? (
+            <FaSpinner className="mr-2 animate-spin" />
+          ) : (
+            <FaSearch className="mr-2" />
+          )}
+          {isLoading ? 'Loading...' : 'Query'}
         </button>
       </div>
       {error && <p className="text-red-500">{error}</p>}
